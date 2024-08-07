@@ -1,0 +1,42 @@
+
+Configure program : 
+take whole screen -> print it back and select one/many areas to take at each SShot(screenshot)
+configure which monitor to take - take also care of monitor size diff
+
+configure area :
+
+
+configure scene/scheme
+click on one scheme to decompose futher based on reccurent area add automatic tags
+Mask can be applied to with this method
+
+
+Example program : 
+launch 3 acc on dofus, place the windows as it please me
+
+configure soft to take the 3 windows in sight -> big screen picture then select 3 area 1 by acc
+make a scene where all 3 acc are spotted
+
+About mask/area :
+    type can be aplied : text / shape / color / action possible ...
+
+on click SShot key :
+    take whole screen
+    cut it on selected area
+    USR : are them same state : Y/n
+    if Y all can be process @ once else for each :
+        on menu bar : scheme can be selected
+        on right bar : tag be selected/unselected
+        on middle screen showing (if many area at same state overlap picture alpha 33/33/33%)
+        Futher user can select specific area whith mouse to create a mask/higlight zone and put a tag on the mask
+        Futher action i'm doing next can be add with hitting righ clik on the screen and pressing the key next
+
+
+create scenes 
+1 - dialogue
+2 - fight
+3 - map mouvement
+3 - inventory / pop up / other type
+4 - ress farm
+
+
