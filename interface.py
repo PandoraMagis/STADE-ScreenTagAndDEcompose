@@ -14,7 +14,6 @@ class interface :
         
         # img place holder
         self.loading_screen_img_obj = Image.open("loading_screen.png")
-
         
         # create a windows for everything
         root = tk.Tk()
@@ -23,53 +22,60 @@ class interface :
         # root.iconbitmap("logo.ico") # icon of window - todo
         root.config(background='#dcdcddddc')
         
+        ### working frame ### -- place of the screen shot and mask edit
+        work_frame = tk.Frame(root, bg='#FF00FF')
+        work_frame.pack(expand='yes', fill=tk.BOTH)
+        
+        ### tests ### -- at the top menu place - example but maybe used
+        test_btn = interface.btn(root)
+        test_btn.pack()
         # txt crea - just an example for now
         # labelx = Label(PLACE, text="...", font=('roboto', 15), bg='', fg='white')
         # labelx.pack(placeargs)
         
-        # working frame - place of the screen shot and mask edit
-        work_frame = tk.Frame(root, bg='#FF00FF')
-        work_frame.pack(expand='yes', fill=tk.BOTH)
-        
-        # at the top menu place - example but maybe used
-        test_btn = interface.btn(root)
-        test_btn.pack()
-        
-        # image holder - hold the screen shot inside workframe
-        img_holder = interface.img(work_frame)        
-        # img_holder.canva.pack()
+        ### image holder ### -- hold the screen shot inside workframe
+        img_holder = interface.img(work_frame)       
         img_holder.canva.pack(expand=1, fill=tk.BOTH)
         img_holder.load_img(self.loading_screen_img_obj)
         self.img_index = 0
+        
+
         
         # frame class attribution
         self.work_frame = work_frame
         self.img_holder = img_holder
 
-        #TODO tag box
+        #TODO tag box - shift click a tag make it auto for next screen shot
         #TODO menu - config
         #TODO top bar for scheme
         #TODO bottom if height enough - chosse img
         #TODO action molette scroll to zoom - in/out on the screen (user precision to place mask)
         
-        # RESIZE action on resire window - resize all the elements
+        ##########  Actions
+        # --- RESIZE ---  action on resire window - resize all the elements
         root.bind('<Configure>', self.resize_window)
-        # action to take a screenshot and change img loaded
-        # bind hotkey to look even out of program
+        
+        # --- ScreenShot --- action to take a screenshot and change img loaded - bind hotkey to look even out of program
         hk = SystemHotkey() # -- if smth goes wrong do this [[collections.Iterable = collections.abc.Iterable]] - in the lib
         hk.register(['kp_0'], callback = lambda e : self.screen_taken(e)) # keys possible : https://github.com/timeyyy/system_hotkey/blob/master/system_hotkey/system_hotkey.py and https://github.com/timeyyy/system_hotkey/blob/master/system_hotkey/keysymdef.py
         
-        # MASK on mouse click draw thing on working frame/canva
-        root.bind('<Button-1>', self.start_mask)
+        # --- MASK Actions --- on mouse click draw thing on working frame/canva
+        self.active_masks = []
+        img_holder.canva.bind('<Button-1>', lambda e : self.start_mask(e, Mask.Mode.Square))
+        img_holder.canva.bind('<Control-1>', lambda e : self.start_mask(e, Mask.Mode.Circle))
+        img_holder.canva.bind('<Shift-1>', lambda e : self.start_mask(e, Mask.Mode.Line))
         # the mask update while dragging mouse
-        root.bind('<B1-Motion>', self.continue_mask)
+        img_holder.canva.bind('<B1-Motion>', self.continue_mask)
         # the mask close and save when it's all done
+        img_holder.canva.bind('<B1-ButtonRelease>', self.stop_mask)
+        # ctrl-z delete last mask
         
         root.mainloop()
         
     def resize_window(self, event) : 
         # on resizing root actions
         self.img_holder.resize_img(event)
+        #TODO - resize and reprint the masks
 
     def screen_taken(self,event) : 
         new_screen = SSR.ScreeenRaw(saving_path="Images/", subjetc="test_dev")
@@ -78,16 +84,23 @@ class interface :
         self.img_index = self.img_loaded.index(new_screen)
     
     # Mask
-    def start_mask(self, event) :
+    def start_mask(self, event, mask_mode) :
         working_img = self.img_loaded[self.img_index]
         if isinstance(working_img, dict) : return # dont launch if we are on the loading_screen
-        self.current_mask = Mask(event, self.img_holder.canva, self.img_loaded[self.img_index])
+        self.current_mask = Mask(event, self.img_holder.canva, self.img_loaded[self.img_index], mask_mode)
     
     def continue_mask(self, event) :
         working_img = self.img_loaded[self.img_index]
         if isinstance(working_img, dict) : return # dont launch if we are on the loading_screen
         if self.current_mask is None : raise RuntimeError("Continuing mask imppossible, no image mask are currently open")
         self.current_mask.draw(event)
+        
+    def stop_mask(self, event) :
+        print(f"finish {self.current_mask}")
+        self.active_masks.append(self.current_mask)
+        #TODO convert mask size, make it match raw image size
+        #TODO disk save the mask
+        pass
         
         
         
@@ -102,7 +115,7 @@ class interface :
         def __init__(self, frame) :
             self.host_frame = frame
             self.canva = tk.Canvas(frame)
-            self.laod = 15
+            # self.laod = 15
             
         def info_pixel(self):
             # updtae needed before geting infos of hight - dont work before pack
@@ -114,11 +127,6 @@ class interface :
             self.img_obj_raw = img_object
             # resize then print the img
             self.resize_img()
-            # resized_image = img_object.resize(self.get_new_size_img(img_object))
-            # tk_image = ImageTk.PhotoImage(resized_image)
-            # # self.canva.delete('all')
-            # self.canva.create_image(0,0, image=tk_image)
-            # # self.canva.config(image=tk_image)
         
         def get_new_size_img(self, widht=None, height=None) :
             # fools keeper - maybe useless
@@ -155,7 +163,7 @@ class interface :
             resized_image = img_object.resize(self.get_new_size_img(img_object))
             self.tk_image = ImageTk.PhotoImage(resized_image)
             self.canva.delete('all')
-            img = self.canva.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
+            self.canva.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
             # self.canva.config(image=tk_image)
             # self.canva.image = tk_image  # Keep a reference to avoid garbage collection
             
