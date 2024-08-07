@@ -28,7 +28,7 @@ class interface :
         # labelx.pack(placeargs)
         
         # working frame - place of the screen shot and mask edit
-        work_frame = tk.Canvas(root, bg='#FF00FF')
+        work_frame = tk.Frame(root, bg='#FF00FF')
         work_frame.pack(expand='yes', fill=tk.BOTH)
         
         # at the top menu place - example but maybe used
@@ -37,7 +37,8 @@ class interface :
         
         # image holder - hold the screen shot inside workframe
         img_holder = interface.img(work_frame)        
-        img_holder.label.pack()
+        # img_holder.canva.pack()
+        img_holder.canva.pack(expand=1, fill=tk.BOTH)
         img_holder.load_img(self.loading_screen_img_obj)
         self.img_index = 0
         
@@ -73,7 +74,6 @@ class interface :
     def screen_taken(self,event) : 
         new_screen = SSR.ScreeenRaw(saving_path="Images/", subjetc="test_dev")
         self.img_holder.load_img(new_screen.take())
-        self.img_holder.resize_img(None)
         self.img_loaded.append( new_screen )
         self.img_index = self.img_loaded.index(new_screen)
     
@@ -81,7 +81,7 @@ class interface :
     def start_mask(self, event) :
         working_img = self.img_loaded[self.img_index]
         if isinstance(working_img, dict) : return # dont launch if we are on the loading_screen
-        self.current_mask = Mask(event, self.work_frame, self.img_loaded[self.img_index])
+        self.current_mask = Mask(event, self.img_holder.canva, self.img_loaded[self.img_index])
     
     def continue_mask(self, event) :
         working_img = self.img_loaded[self.img_index]
@@ -101,21 +101,24 @@ class interface :
     class img : 
         def __init__(self, frame) :
             self.host_frame = frame
-            self.label = tk.Label(frame, bg='purple', anchor='nw')
+            self.canva = tk.Canvas(frame)
             self.laod = 15
             
         def info_pixel(self):
             # updtae needed before geting infos of hight - dont work before pack
-            self.label.update()
+            self.canva.update()
             winfo = (self.host_frame.winfo_width(), self.host_frame.winfo_height() )
             return winfo
 
         def load_img(self, img_object) :
             self.img_obj_raw = img_object
             # resize then print the img
-            resized_image = img_object.resize(self.get_new_size_img(img_object))
-            tk_image = ImageTk.PhotoImage(resized_image)
-            self.label.config(image=tk_image)
+            self.resize_img()
+            # resized_image = img_object.resize(self.get_new_size_img(img_object))
+            # tk_image = ImageTk.PhotoImage(resized_image)
+            # # self.canva.delete('all')
+            # self.canva.create_image(0,0, image=tk_image)
+            # # self.canva.config(image=tk_image)
         
         def get_new_size_img(self, widht=None, height=None) :
             # fools keeper - maybe useless
@@ -145,14 +148,16 @@ class interface :
             # self.laod -= 1
             return (resize_width-4, resize_height-4)
 
-        def resize_img(self, event):
+        def resize_img(self, event=None):
             if self.img_obj_raw is None : raise ValueError("img not loaded in container, new size can't be computed")
             else : img_object = self.img_obj_raw
             
             resized_image = img_object.resize(self.get_new_size_img(img_object))
-            tk_image = ImageTk.PhotoImage(resized_image)
-            self.label.config(image=tk_image)
-            self.label.image = tk_image  # Keep a reference to avoid garbage collection
+            self.tk_image = ImageTk.PhotoImage(resized_image)
+            self.canva.delete('all')
+            img = self.canva.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
+            # self.canva.config(image=tk_image)
+            # self.canva.image = tk_image  # Keep a reference to avoid garbage collection
             
     
     class btn :
