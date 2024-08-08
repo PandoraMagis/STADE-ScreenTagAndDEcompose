@@ -76,6 +76,8 @@ class interface :
         # on resizing root actions
         self.img_holder.resize_img(event)
         #TODO - resize and reprint the masks
+        for mask in self.active_masks :
+            mask.mask_for_img_holder()
 
     def screen_taken(self,event) : 
         new_screen = SSR.ScreeenRaw(saving_path="Images/", subjetc="test_dev")
@@ -87,7 +89,7 @@ class interface :
     def start_mask(self, event, mask_mode) :
         working_img = self.img_loaded[self.img_index]
         if isinstance(working_img, dict) : return # dont launch if we are on the loading_screen
-        self.current_mask = Mask(event, self.img_holder.canva, self.img_loaded[self.img_index], mask_mode)
+        self.current_mask = Mask(event, self.img_holder, self.img_loaded[self.img_index], mask_mode)
     
     def continue_mask(self, event) :
         working_img = self.img_loaded[self.img_index]
@@ -98,7 +100,6 @@ class interface :
     def stop_mask(self, event) :
         print(f"finish {self.current_mask}")
         self.active_masks.append(self.current_mask)
-        #TODO convert mask size, make it match raw image size
         #TODO disk save the mask
         pass
         
@@ -133,10 +134,9 @@ class interface :
             # if widht is None and height is None : raise ValueError("img resize asked without widht nor height")
             if widht is not None and height is not None : raise NotImplemented("img resize asked with widht AND height - idk what happend from this")
             if self.img_obj_raw is None : raise ValueError("img not loaded in container, new size can't be computed")
-            else : img_object = self.img_obj_raw
             
             # img infos for computing ratio and use it
-            original_width, original_height = img_object.size
+            original_width, original_height = self.img_obj_raw.size
             img_aspect_ratio = original_width / original_height
             
             # window size and possible img resolution out come
@@ -154,7 +154,8 @@ class interface :
             # print(f"image height info raw : {original_height} ; new : {img_new_height} ; window : {w_height} ; chosen : {resize_height}")
             # if self.laod ==0 : exit()
             # self.laod -= 1
-            return (resize_width-4, resize_height-4)
+            self.img_size = (resize_width, resize_height)
+            return self.img_size
 
         def resize_img(self, event=None):
             if self.img_obj_raw is None : raise ValueError("img not loaded in container, new size can't be computed")
