@@ -23,7 +23,7 @@ class Mask :
         # mode and mask saving object
         self.mode = mode
         self.mask = None        # ID of shape on the canvas
-        self.mask_shape = None  # Mask position/shape on raw image
+        self.mask_shape = []    # Mask position/shape on raw image
         
     def draw(self, event) : 
         # decompose element for facility
@@ -33,8 +33,9 @@ class Mask :
             self.last_pos = event.x, event.y
             new_x, new_y = self.last_pos
             #TODO - not realy viable - polygon must be better the end
+            draw_pos = (last_x, last_y, new_x, new_y)
             self.mask_for_raw_img(draw_pos)
-            self.draw_line((last_x, last_y, new_x, new_y))
+            self.draw_line(draw_pos)
         else:
             new_x, new_y = event.x, event.y
             self.canva.delete(self.mask)       
