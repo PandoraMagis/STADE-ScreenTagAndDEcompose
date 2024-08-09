@@ -22,6 +22,12 @@ class interface :
         # root.iconbitmap("logo.ico") # icon of window - todo
         root.config(background='#dcdcddddc')
         
+        ### tag frame ###
+        tag_frame = tk.Frame(root, bg = '#000')
+        btn_new_tag = interface.btn(tag_frame, "new tag")
+        btn_new_tag.pack()
+        tag_frame.pack(fill=tk.X, anchor='n')
+        
         ### working frame ### -- place of the screen shot and mask edit
         work_frame = tk.Frame(root, bg='#FF00FF')
         work_frame.pack(expand='yes', fill=tk.BOTH)
@@ -44,6 +50,8 @@ class interface :
         # frame class attribution
         self.work_frame = work_frame
         self.img_holder = img_holder
+        self.tag_frame = tag_frame
+        self.tag_btns = [btn_new_tag]
 
         #TODO tag box - shift click a tag make it auto for next screen shot
         #TODO menu - config
@@ -69,6 +77,10 @@ class interface :
         # the mask close and save when it's all done
         img_holder.canva.bind('<B1-ButtonRelease>', self.stop_mask)
         # ctrl-z delete last mask
+        
+        # --- Button Actions --- 
+        # create new tag action
+        btn_new_tag.bind('<Button-1>', lambda e: print("clicked"))
         
         root.mainloop()
         
@@ -101,7 +113,7 @@ class interface :
         print(f"finish {self.current_mask}")
         self.active_masks.append(self.current_mask)
         #TODO disk save the mask
-        pass
+        self.current_mask.save_mask()
         
         
         

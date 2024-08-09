@@ -94,8 +94,26 @@ class Mask :
             self.mask_shape.append(draw_pos)
         else :
             self.mask_shape = draw_pos
+            
+    def save_mask(self) :
+        # get mask for raw image size
+        #TODO - will crsh for a line mask
+        x_start, y_start, x_end, y_end = self.mask_shape
+        mask_type = self.mode
         
+        # get img info
+        img_number = self.img.img_number
+        img_path = self.img.img_name
+        
+        # final mask to write
+        mask_str = [img_number, img_path ,mask_type ,x_start, y_start, x_end, y_end]
+        mask_str = [ str(i) for i in mask_str]
+        mask_str = ','.join(mask_str) + '\n'
+        # open and append to the end of the file 
+        with open('mask.csv', 'a') as file:
+            file.write(mask_str)
         
         
     def __str__(self) -> str:
+        #TODO - change this to be used in save mask BUT care for mask not fully initialised
         return f"Mask on image {self.img.img_name}, drawing with {self.mode} on {self.canva}, last pos {self.last_pos}"
