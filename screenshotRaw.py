@@ -7,6 +7,15 @@ class ScreeenRaw() :
         if not os.path.isdir(saving_path) : raise ValueError("Saving path for screenshot isn't a valiable directory")
         self.saving_path = saving_path
         self.subject = subjetc
+        
+    # def __init__(self, file_path) :
+    #     self.saving_path = file_path
+    #     print(self.saving_path.split('/'))
+    #     # self.img_number = 
+    #     # self.img_name = 
+    #     # self.subject = 
+    #     # self.screenshot = 
+        
     
     def take(self) : 
         self.time = datetime.now()
