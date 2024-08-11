@@ -1,6 +1,7 @@
 from tkinter import Canvas
 from enum import Enum
 
+from tag import color_in_hex
     
 class Mask :
     
@@ -12,7 +13,7 @@ class Mask :
         Square = 2
         Circle = 3
         
-    def __init__(self, event, img_holder, ssr_object, mode : Mode) -> None:
+    def __init__(self, event, img_holder, ssr_object, mode : Mode, tag) -> None:
         # initialasing the positions
         self.init_pos = event.x, event.y
         self.last_pos = event.x, event.y
@@ -24,6 +25,7 @@ class Mask :
         self.mode = mode
         self.mask = None        # ID of shape on the canvas
         self.mask_shape = []    # Mask position/shape on raw image
+        self.tag = tag
         
     def draw(self, event) : 
         # decompose element for facility
@@ -53,13 +55,13 @@ class Mask :
         
     
     def draw_square(self, draw_pos) :
-        self.mask = self.canva.create_rectangle(draw_pos, fill='blue')
+        self.mask = self.canva.create_rectangle(draw_pos, fill=color_in_hex(self.tag.colors))
     
     def draw_line(self, draw_pos) : 
-        self.canva.create_line(draw_pos, fill='red')
+        self.canva.create_line(draw_pos, fill=color_in_hex(self.tag.colors))
     
     def draw_circle(self, draw_pos) : 
-        self.mask = self.canva.create_oval(draw_pos, fill='purple')
+        self.mask = self.canva.create_oval(draw_pos, fill=color_in_hex(self.tag.colors))
         
     def resize(self, draw_pos, for_raw = True) : 
         # get size of canva
@@ -105,12 +107,15 @@ class Mask :
         img_number = self.img.img_number
         img_path = self.img.img_name
         
+        # tag info
+        tag_name = self.tag.name
+        
         # final mask to write
-        mask_str = [img_number, img_path ,mask_type ,x_start, y_start, x_end, y_end]
+        mask_str = [img_number, img_path, tag_name ,mask_type ,x_start, y_start, x_end, y_end]
         mask_str = [ str(i) for i in mask_str]
         mask_str = ','.join(mask_str) + '\n'
         # open and append to the end of the file 
-        with open('mask.csv', 'a') as file:
+        with open('data/applied_mask.csv', 'a') as file:
             file.write(mask_str)
         
         

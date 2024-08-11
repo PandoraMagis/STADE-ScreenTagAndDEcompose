@@ -26,22 +26,23 @@ class interface :
         root.config(background='#dcdcddddc')
         
         ### tag frame ###
-        tag_frame = tk.Frame(root, bg = '#AAA')
-        btn_new_tag = interface.btn(tag_frame, "create tag")
+        frame_tag_btn = tk.Frame(root, bg = '#AAA')
+        btn_new_tag = interface.btn(frame_tag_btn, "create tag")
         btn_new_tag.pack(anchor='nw')
         # print button within a grid
         btn_new_tag.grid(row=0, column = 0 , padx=1, pady=3)
         # grid number
-        self.grid_btn_top_numbers = {'row' : 0, 'col' : 1}
-        tag_frame.pack(fill=tk.X, anchor='n')
+        self.grid_tag_btn_pos = {'row' : 0, 'col' : 1}
+        frame_tag_btn.pack(fill=tk.X, anchor='n')
         
         ### working frame ### -- place of the screen shot and mask edit
         work_frame = tk.Frame(root, bg='#FF00FF')
         work_frame.pack(expand='yes', fill=tk.BOTH)
         
         ### tests ### -- at the top menu place - example but maybe used
-        test_btn = interface.btn(root)
-        test_btn.pack()
+        frame_action_tag_btn = tk.Frame(root, bg='#AAA')
+        # test_btn = interface.btn(root)
+        # test_btn.pack()
         # txt crea - just an example for now
         # labelx = Label(PLACE, text="...", font=('roboto', 15), bg='', fg='white')
         # labelx.pack(placeargs)
@@ -51,16 +52,32 @@ class interface :
         img_holder.canva.pack(expand=1, fill=tk.BOTH)
         img_holder.load_img(self.loading_screen_img_obj)
         self.img_index = 0
+        self.is_loading_screen = True
+        
+        # bi directionals functions 
+        def tag_selection(*args, **kwargs) :
+            # make tag clicked active, and if double clicked add/delete @ default tag
+            self.tag_selected = args[0]
+            if args[1] :
+                if self.default_locked_tags.count(self.tag_selected) > 0 : 
+                    self.default_locked_tags.remove(self.tag_selected)
+                else :  
+                    self.default_locked_tags.append(self.tag_selected)
+            # print(f"clicked : {args} // {kwargs} , selected tag  ={self.tag_selected}")
+            # print(f" tag selected : {self.tag_selected}, tag actives : {self.default_locked_tags}")
         
 
-        
         # frame class attribution
         self.work_frame = work_frame
         self.img_holder = img_holder
-        self.tag_frame = tag_frame
+        self.tag_frame = frame_tag_btn
         self.tag_btns = [btn_new_tag]
+        
+        ##########  Re-oppening
+        for tag in Tag.open_tag() :
+            self.tag_btns.append(Tag(self.tag_frame, tag["name"], self.grid_tag_btn_pos, tag_selection, colors=tag["color"]))
 
-        #TODO tag box - shift click a tag make it auto for next screen shot
+
         #TODO menu - config
         #TODO top bar for scheme
         #TODO bottom if height enough - chosse img
@@ -89,19 +106,7 @@ class interface :
         self.default_locked_tags = []
         self.tag_selected = None
         # create new tag action
-        def tag_selection(*args, **kwargs) :
-            # make tag clicked active, and if double clicked add/delete @ default tag
-            self.tag_selected = args[0]
-            if args[1] :
-                if self.default_locked_tags.count(self.tag_selected) > 0 : 
-                    self.default_locked_tags.remove(self.tag_selected)
-                else :  
-                    self.default_locked_tags.append(self.tag_selected)
-            # print(f"clicked : {args} // {kwargs} , selected tag  ={self.tag_selected}")
-            print(f" tag selected : {self.tag_selected}, tag actives : {self.default_locked_tags}")
-            
-        # keeping action
-        btn_new_tag.bind('<Button-1>', lambda e: self.tag_btns.append(Tag(self.tag_frame, "new tag", self.grid_btn_top_numbers, tag_selection)))
+        btn_new_tag.bind('<Button-1>', lambda e: self.tag_btns.append(Tag(self.tag_frame, "new tag", self.grid_tag_btn_pos, tag_selection)))
         
         root.mainloop()
         
@@ -118,20 +123,26 @@ class interface :
         self.img_holder.load_img(new_screen.take())
         self.img_loaded.append( new_screen )
         self.img_index = self.img_loaded.index(new_screen)
+        self.is_loading_screen = False
+        # TODO apply all default locked tag 
     
     # Mask
     def start_mask(self, event, mask_mode) :
-        working_img = self.img_loaded[self.img_index]
-        if isinstance(working_img, dict) : return # dont launch if we are on the loading_screen
-        self.current_mask = Mask(event, self.img_holder, self.img_loaded[self.img_index], mask_mode)
+        if self.is_loading_screen : print('not working on loading screen')
+        elif self.tag_selected is None : print('no tag selected')
+        if self.is_loading_screen or self.tag_selected is None : return
+        
+        # working_img = self.img_loaded[self.img_index]
+        self.current_mask = Mask(event, self.img_holder, self.img_loaded[self.img_index], mask_mode, tag=self.tag_selected)
     
     def continue_mask(self, event) :
-        working_img = self.img_loaded[self.img_index]
-        if isinstance(working_img, dict) : return # dont launch if we are on the loading_screen
+        if self.is_loading_screen or self.tag_selected is None : return
+        # working_img = self.img_loaded[self.img_index]
         if self.current_mask is None : raise RuntimeError("Continuing mask imppossible, no image mask are currently open")
         self.current_mask.draw(event)
         
     def stop_mask(self, event) :
+        if self.is_loading_screen or self.tag_selected is None : return
         print(f"finish {self.current_mask}")
         self.active_masks.append(self.current_mask)
         #TODO disk save the mask
