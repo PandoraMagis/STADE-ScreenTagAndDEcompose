@@ -4,18 +4,21 @@ from system_hotkey import SystemHotkey
 
 import screenshotRaw as SSR
 from mask_editor import Mask
+from tag import Tag
+
+SUBJECT = "test_dev"
 
 class interface :
     
     def __init__(self) -> None:
         
-        # image accumulator
+        # image accumulator - first one is not modifiable so i add it by the hand (not an SSR object)
         self.img_loaded = [{"name":"laoding_screen"}]
         
-        # img place holder
+        # starting img loading 
         self.loading_screen_img_obj = Image.open("loading_screen.png")
         
-        # create a windows for everything
+        # create a root windows (main window) 
         root = tk.Tk()
         root.title("STADE - ScreenTagAndDEcompose")
         root.minsize(480,360)
@@ -23,9 +26,13 @@ class interface :
         root.config(background='#dcdcddddc')
         
         ### tag frame ###
-        tag_frame = tk.Frame(root, bg = '#000')
-        btn_new_tag = interface.btn(tag_frame, "new tag")
-        btn_new_tag.pack()
+        tag_frame = tk.Frame(root, bg = '#AAA')
+        btn_new_tag = interface.btn(tag_frame, "create tag")
+        btn_new_tag.pack(anchor='nw')
+        # print button within a grid
+        btn_new_tag.grid(row=0, column = 0 , padx=1, pady=3)
+        # grid number
+        self.grid_btn_top_numbers = {'row' : 0, 'col' : 1}
         tag_frame.pack(fill=tk.X, anchor='n')
         
         ### working frame ### -- place of the screen shot and mask edit
@@ -79,20 +86,35 @@ class interface :
         # ctrl-z delete last mask
         
         # --- Button Actions --- 
+        self.default_locked_tags = []
+        self.tag_selected = None
         # create new tag action
-        btn_new_tag.bind('<Button-1>', lambda e: print("clicked"))
+        def tag_selection(*args, **kwargs) :
+            # make tag clicked active, and if double clicked add/delete @ default tag
+            self.tag_selected = args[0]
+            if args[1] :
+                if self.default_locked_tags.count(self.tag_selected) > 0 : 
+                    self.default_locked_tags.remove(self.tag_selected)
+                else :  
+                    self.default_locked_tags.append(self.tag_selected)
+            # print(f"clicked : {args} // {kwargs} , selected tag  ={self.tag_selected}")
+            print(f" tag selected : {self.tag_selected}, tag actives : {self.default_locked_tags}")
+            
+        # keeping action
+        btn_new_tag.bind('<Button-1>', lambda e: self.tag_btns.append(Tag(self.tag_frame, "new tag", self.grid_btn_top_numbers, tag_selection)))
         
         root.mainloop()
         
     def resize_window(self, event) : 
         # on resizing root actions
         self.img_holder.resize_img(event)
-        #TODO - resize and reprint the masks
+        #resize and reprint the masks
         for mask in self.active_masks :
             mask.mask_for_img_holder()
+        # TODO - erease and replace all the tags buttons
 
     def screen_taken(self,event) : 
-        new_screen = SSR.ScreeenRaw(saving_path="Images/", subjetc="test_dev")
+        new_screen = SSR.ScreeenRaw(saving_path="Images/", subjetc=SUBJECT)
         self.img_holder.load_img(new_screen.take())
         self.img_loaded.append( new_screen )
         self.img_index = self.img_loaded.index(new_screen)
@@ -121,6 +143,7 @@ class interface :
     
     
     # class tag_bar :
+        
         
     # class tuto : 
     
