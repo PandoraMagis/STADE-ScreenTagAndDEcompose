@@ -1,6 +1,7 @@
 import win32gui
 import win32api
 import win32con
+import pywintypes
 
 from enum import Enum
 import ctypes
@@ -11,13 +12,14 @@ class Action :
         """Mode types for the type of mask.
             Types are autonomics
         """
+        BTN_DISPOSAL = [(2,2), (2,0), (1,1), (3,1), (1,0), (1,2)]
         BASE_LINE = (1920,1080)
         Go_RIGHT = (1570,600)
         Go_LEFT = (100,200)
         Go_UP = (1200,10)
         Go_DOWN = (1200,900)
         DIALOGUE_NEXT = 3
-        JOIN_GRP_FIGHT = 3
+        JOIN_GRP_FIGHT = 5
         
     def __init__(self, window_name, baseline) -> None:
         self.hwnd = win32gui.FindWindow(None, window_name)
@@ -29,33 +31,36 @@ class Action :
     
     def click(x, y, hwnd, baseline):
         # window info retrive
-        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-        
-        left, right = (-1 * left, -1 * right) if left < 0 else (left, right)
-        top, bottom = (-1 * top, -1 * bottom) if top < 0 else (top, bottom)
-        
-        print(f"pos: {left}x{top} to {right}x{bottom} -- try to go @ {x}x{y}")
+        try :
+            left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+            
+            left, right = (-1 * left, -1 * right) if left < 0 else (left, right)
+            top, bottom = (-1 * top, -1 * bottom) if top < 0 else (top, bottom)
+            
+            print(f"pos: {left}x{top} to {right}x{bottom} -- try to go @ {x}x{y}")
 
-        width, height = left - right , top - bottom
-        # width, height = left - right , top - bottom
-        
-        x_final = left + x
-        y_final = top + y
-        print(f"1st  : window size : {width}x{height} pos: {left}x{top} to {right}x{bottom} -- cursor ar {x_final}x{y_final} -- try to go @ {x}x{y}")
-        
-        width_base, height_base = baseline.value
-        x_ratio, y_ratio = width_base / width ,     height_base / height
-        x_final, y_final = int( x / x_ratio ) ,     int( y / y_ratio )
-        
-        print(f"2nd  : window size : {width}x{height} ref: {width_base}x{height_base}             -- cursor ar {x_final}x{y_final} -- try to go @ {x}x{y}")
-        
-        lParam = win32api.MAKELONG(x_final, y_final)
-        
-        
-        # hWnd1= win32gui.FindWindowEx(hWnd, None, None, None)
-        # win32api.SetCursorPos((x_final, y_final)) #for dev
-        # win32gui.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-        # win32gui.SendMessage(hwnd, win32con.WM_LBUTTONUP, None, lParam)
+            width, height = left - right , top - bottom
+            # width, height = left - right , top - bottom
+            
+            x_final = left + x
+            y_final = top + y
+            print(f"1st  : window size : {width}x{height} pos: {left}x{top} to {right}x{bottom} -- cursor ar {x_final}x{y_final} -- try to go @ {x}x{y}")
+            
+            width_base, height_base = baseline.value
+            x_ratio, y_ratio = width_base / width ,     height_base / height
+            x_final, y_final = int( x / x_ratio ) ,     int( y / y_ratio )
+            
+            print(f"2nd  : window size : {width}x{height} ref: {width_base}x{height_base}             -- cursor ar {x_final}x{y_final} -- try to go @ {x}x{y}")
+            
+            lParam = win32api.MAKELONG(x_final, y_final)
+            
+            
+            # hWnd1= win32gui.FindWindowEx(hWnd, None, None, None)
+            # win32api.SetCursorPos((x_final, y_final)) #for dev
+            win32gui.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
+            win32gui.SendMessage(hwnd, win32con.WM_LBUTTONUP, None, lParam)
+        except pywintypes.error as e : 
+            print(e)
         
     def correct_size(windo_shape, ref_shape, ref_x, ref_y) :
         w_x, w_y = windo_shape
