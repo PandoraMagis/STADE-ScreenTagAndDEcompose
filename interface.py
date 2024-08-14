@@ -5,8 +5,11 @@ from system_hotkey import SystemHotkey
 import screenshotRaw as SSR
 from mask_editor import Mask
 from tag import Tag
+from action import Action
 
 SUBJECT = "test_dev"
+
+WINDOWS_NAMES = [ f"{charcacter_name} - Dofus 2.72.0.9" for charcacter_name in ['Vamy', 'Lor-Shol', 'Im-a-trap']]
 
 class interface :
     
@@ -28,7 +31,7 @@ class interface :
         ### tag frame ###
         frame_tag_btn = tk.Frame(root, bg = '#AAA')
         btn_new_tag = interface.btn(frame_tag_btn, "create tag")
-        btn_new_tag.pack(anchor='nw')
+        # btn_new_tag.pack(anchor='nw')
         # print button within a grid
         btn_new_tag.grid(row=0, column = 0 , padx=1, pady=3)
         # grid number
@@ -39,8 +42,39 @@ class interface :
         work_frame = tk.Frame(root, bg='#FF00FF')
         work_frame.pack(expand='yes', fill=tk.BOTH)
         
+        ### Actions Tag frame ### - where you can act and tag a screen
+        frame_action_tag_btn = tk.Frame(root, bg='#FF00FF')
+        frame_action_tag_btn.pack(expand='yes', fill=tk.BOTH)
+        
+        # init all actions buttons
+        disposal = []
+        for count, action_type in enumerate(Action.Dofus_Action) : 
+            if action_type.name == 'BASE_LINE' : continue
+            if action_type.name == 'BTN_DISPOSAL' : 
+                disposal = action_type.value
+                continue 
+            
+            actions = [ Action(window_name, Action.Dofus_Action.BASE_LINE) for window_name in WINDOWS_NAMES]
+
+            
+            def func_click(arg) :
+                print(f"test now btn action {arg}")
+                for action in actions :
+                    action.click_self( action = arg )
+            
+            btn = self.btn(frame_action_tag_btn, action_type.name, func_click, action_type) 
+            
+            r, c = disposal[count-2]
+            btn.grid(row = r, column = c , padx = 2, pady = 2)
+            # btn.bind('<Button-1>', lambda e : print( dir(e.widget)  ) )
+            # btn.bind('<Button-1>', lambda e : print( dir(e.widget.action_to_realise)  ) )
+            # btn.bind('<Button-1>', lambda e : e.widget.action_to_realise(e) )
+            
+        # show 
+
+        
+        
         ### tests ### -- at the top menu place - example but maybe used
-        frame_action_tag_btn = tk.Frame(root, bg='#AAA')
         # test_btn = interface.btn(root)
         # test_btn.pack()
         # txt crea - just an example for now
@@ -125,6 +159,12 @@ class interface :
         self.img_index = self.img_loaded.index(new_screen)
         self.is_loading_screen = False
         # TODO apply all default locked tag 
+        self.active_masks.clear()
+        for df_tag in self.default_locked_tags :
+            self.active_masks[-1].load_old_mask(df_tag.name)
+            self.active_masks.append(Mask(None, self.img_holder, new_screen, None, df_tag))
+            self.active_masks[-1].save_mask(applied_by_default=True)
+            
     
     # Mask
     def start_mask(self, event, mask_mode) :
@@ -143,10 +183,9 @@ class interface :
         
     def stop_mask(self, event) :
         if self.is_loading_screen or self.tag_selected is None : return
-        print(f"finish {self.current_mask}")
         self.active_masks.append(self.current_mask)
-        #TODO disk save the mask
-        self.current_mask.save_mask()
+        self.current_mask.save_mask(applied_by_default=self.tag_selected in self.default_locked_tags)
+        #TODO how do i keep df mask info ? should they be changed afterwards
         
         
         
@@ -216,8 +255,9 @@ class interface :
             
     
     class btn :
-        def __new__(self, frame, txt='no text btn') -> None:
-            return tk.Button(frame, text=txt, font=('roboto',15), bg='white', fg='black')
+        def __new__(self, frame, txt='no text btn', on_click = lambda arg : print(arg), arg_function = None) -> None:
+            on_click = on_click
+            return tk.Button(frame, text=txt, font=('roboto',15), bg='white', fg='black', command= lambda: on_click(arg_function)  )
 
 
 if __name__ == "__main__" : 
